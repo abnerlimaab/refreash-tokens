@@ -107,3 +107,36 @@ async function criaTokenOpaco(usuario) {
 ~~~javascript
 require('./redis/allowlist-refresh-token')
 ~~~
+
+## Refatorando a blocklist
+
+- Atualizamos os importes da blocklist importando o módulo redis e nosso arquivo que manipula-lista
+
+~~~javascript
+const redis = require('redis')
+const manipulaLista = require('./manipula-lista')
+~~~
+
+- Criamos uma nova lista com redis com o prefixo blocklist-access-token e a passamos para manipula-lista
+
+~~~javascript
+const blocklist = redis.createClient({prefix: 'blocklist-access-token:'})
+const manipulaBlockList = manipulaLista(blocklist)
+~~~
+
+- Refatoramos os métodos implementados anteriormente para usar manipulaBlockList
+
+~~~javascript
+module.exports = {
+  async adiciona(token) {
+    //...
+    await manipulaBlockList.adiciona(tokenHash, '', dataExpiracao)
+  },
+  async contemToken(token) {
+    //...
+    return manipulaBlockList.contemChave(tokenHash)
+  },
+};
+~~~
+
+Obs: Como alteramos o nome do arquivo para blocklist-access-token, ajustamos sua chamada nos arquivos que o utilizam.
