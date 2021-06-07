@@ -30,3 +30,42 @@ async login(req, res) {
     }
 },
 ~~~
+
+## Manipulando uma lista genérica
+
+- Na pasta do Redis, criamos o arquivo manipula-lista
+
+- Utilizaremos promisses nas funções que se comunicarão com o banco de dados. Para isso, vamos importá-la.
+
+~~~javascript
+const { promisify } = require('util')
+~~~
+
+- Então, encapsulamos os métodos set, exists, get e del em promisses e com o método bind() inserimos a lista (como this) no escopo da função redis
+
+~~~javascript
+    const setAsync = promisify(lista.set).bind(lista)
+    const existAsync = promisify(lista.exists).bind(lista)
+    const getAsync = promisify(lista.get).bind(lista)
+    const delAsync = promisify(lista.del).bind(lista)
+~~~
+
+- E retornamos um objeto com as funções "promissificadas"
+
+~~~javascript
+    return {
+        async adiciona(chave, valor, dataExpiracao) {
+            await setAsync(chave, valor)
+            lista.expireat(chave, dataExpiracao)
+        },
+        async buscaValor(chave) {
+            return getAsync(chave)
+        },
+        async vontemChave(chave) {
+            const resultado = await existAsync(chave)
+            return resultado === 1
+        },
+        async deflateRaw(chave) {
+            await delAsync(chave)
+        }
+~~~
