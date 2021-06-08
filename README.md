@@ -140,3 +140,45 @@ module.exports = {
 ~~~
 
 Obs: Como alteramos o nome do arquivo para blocklist-access-token, ajustamos sua chamada nos arquivos que o utilizam.
+
+## Verificando refresh tokens
+
+- Implementamos a função verificaRefreshToken que tem por responsabilidade checar o token na allow-list e retornar o id do usuário. Será retornado erro caso não tenha sido encaminhado um token pelo cliente ou o mesmo seja inválido.
+
+~~~javascript
+async function verificaRefreshToken(refreshToken) {
+  if (!refreshToken) {
+    throw new InvalidArgumentError('Refresh Token não enviado!')
+  }
+  const id = await allowListRefreshToken.buscaValor(refreshToken)
+  if (!id) {
+    throw new InvalidArgumentError('Refresh token inválido!')
+  }
+  return id
+}
+~~~
+
+- Implementamos a função invalidaRefreshToken que tem por responsabilidade retirar o token da allow-list o tornando inválido.
+
+~~~javascript
+async function invalidaRefreshToken(refreshToken) {
+  await allowListRefreshToken.deflateRaw(refreshToken)
+}
+~~~
+
+- Então, implementamos o middleware refresh que tem por responsabilidade recolher o token do corpo da requisição, verificar se o token enviado é válido e torná-lo inválido. Por fim, uma instãncia de Usuário será inclusa na requisição pelo método buscaPorId que terá por parâmetro o id retornado da verificação do token.
+
+~~~javascript
+  async refresh(req, res, next) {
+    try {
+      const { refreshToken } = req.body
+      const id = await verificaRefreshToken(refreshToken)
+      await invalidaRefreshToken(refreshToken)
+      req.user = await Usuario.buscaPorId(id)
+      return next()
+    } catch (erro) {
+      if (erro.name === 'InvalidArgumentError') return res.status(401).json({erro: erro.message})
+      return res.status(500).json({erro: erro.message})
+    }
+  }
+~~~
