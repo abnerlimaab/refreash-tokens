@@ -182,3 +182,21 @@ async function invalidaRefreshToken(refreshToken) {
     }
   }
 ~~~
+
+## Implementando as rotas
+
+- Criamos a rota /usuario/atualiza_token que aciona o refresh do middleware de autenticação que invalida o token da requisição e então concederemos um novo token através da função login do usuariosControlador com base no id de usuário retornado pelo refresh.
+
+~~~javascript
+  app
+    .route('/usuario/atualiza_token')
+    .post(middlewaresAutenticacao.refresh, usuariosControlador.login)
+~~~
+
+- Na rota de logout já existente, passamos agora uma lista com os middlewares refresh e bearer e en seguida é executada a função logout
+
+~~~javascript
+  app
+    .route('/usuario/logout')
+    .post([middlewaresAutenticacao.refresh, middlewaresAutenticacao.bearer], usuariosControlador.logout);
+~~~
