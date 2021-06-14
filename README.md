@@ -259,3 +259,12 @@ module.exports = {
       //...
   },
 ~~~
+
+## Modularizando a verificação
+
+- Reimplementamos de forma generalizada as funções verificaTokenJWT, verificaTokenNaBlocklist e verificaTokenOpaco tirando reduzindo assim as responsabilidades dos middlewares-autenticacao e das estrategias-autenticacao transferindo-as para o módulo tokens.js
+
+- Implementamos as funções verificaTokenValido e verificaTokenEnviado que agora passarão erros personalizados conforme o token enviado
+
+- Adicionamos os métodos verifica(token) nos objetos access e refresh que chamam a função especifica do token
+
