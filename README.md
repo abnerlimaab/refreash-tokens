@@ -268,3 +268,12 @@ module.exports = {
 
 - Adicionamos os métodos verifica(token) nos objetos access e refresh que chamam a função especifica do token
 
+## Modularizando a invalidação
+
+- Reimplementamos as funções invalidaTokenJWT e invalidaTokenOpaco de forma genérica no módulo tokens.js
+
+- Implementamos o método invalida nos objetos access e refresh do módulo
+
+- Substituimos a função invalidaRefreshToken da função refresh de middlewares-autenticacao pelo método invalida do objeto refresh modularizado em tokens.js
+
+- Substituimos a função blocklist.adiciona da função logout de usuario-controlador pelo método invalida do objeto access modularizado em tokens.js
