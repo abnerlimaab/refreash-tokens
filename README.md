@@ -188,6 +188,7 @@ async function invalidaRefreshToken(refreshToken) {
 - Criamos a rota /usuario/atualiza_token que aciona o refresh do middleware de autenticação que invalida o token da requisição e então concederemos um novo token através da função login do usuariosControlador com base no id de usuário retornado pelo refresh.
 
 ~~~javascript
+
   app
     .route('/usuario/atualiza_token')
     .post(middlewaresAutenticacao.refresh, usuariosControlador.login)
@@ -199,4 +200,62 @@ async function invalidaRefreshToken(refreshToken) {
   app
     .route('/usuario/logout')
     .post([middlewaresAutenticacao.refresh, middlewaresAutenticacao.bearer], usuariosControlador.logout);
+~~~
+
+# Modularizando os tokens
+
+## Modulariizando a criação
+
+- Criamos o módulo tokens.js que terá a responsabilidade de gerenciar os tokens
+
+- Reimplementamos a função criaTokenJWT de forma genérica
+
+~~~javascript
+function criaTokenJWT(id, [tempoQuantidade, tempoUnidade]) {
+    const payload = { id };
+    const token = jwt.sign(payload, process.env.CHAVE_JWT, { expiresIn: tempoQuantidade + tempoUnidade });
+    return token;
+}
+~~~
+
+- Reimplementamos a função criaTokenOpaco de forma genérica
+
+~~~javascript
+async function criaTokenOpaco(id, [tempoQuantidade, tempoUnidade], allowlist) {
+    const tokenOpaco = crypto.randomBytes(24).toString('hex')
+    const dataExpiracao = moment().add(tempoQuantidade, tempoUnidade).unix()
+    await allowlist.adiciona(tokenOpaco, id, dataExpiracao)
+    return tokenOpaco
+}
+~~~
+
+- Exportamos os objetos access e refresh
+
+~~~javascript
+module.exports = {
+    access: {
+        expiracao: [15, 'm'],
+        cria(id) {
+            return criaTokenJWT(id, this.expiracao)
+        }
+    },
+    refresh: {
+        lista: allowlistRefreshToken,
+        expiracao: [5, 'd'],
+        cria(id) {
+            return criaTokenOpaco(id, this.expiracao, this.lista)
+        }
+    }
+}
+~~~
+
+- Atualizamos a chamada dos métodos de criação de tokens da função login para utilização do módulo.
+
+~~~javascript
+  async login(req, res) {
+    try {
+      const accessToken = tokens.access.cria(req.user.id);
+      const refreashToken = await tokens.refresh.cria(req.user.id)
+      //...
+  },
 ~~~
