@@ -277,3 +277,34 @@ module.exports = {
 - Substituimos a função invalidaRefreshToken da função refresh de middlewares-autenticacao pelo método invalida do objeto refresh modularizado em tokens.js
 
 - Substituimos a função blocklist.adiciona da função logout de usuario-controlador pelo método invalida do objeto access modularizado em tokens.js
+
+## Enviando e-mails
+
+- Instalamos o módulo nodemailer
+
+- Criamos o módulo emails.js dentro da pasta usuarios e importamos o nodemailer
+
+- Implementamos a função enviaEmail
+
+~~~javascript
+async function enviaEmail(usuario) {
+    //método do nodemailer que cria uma conta de teste que será usada no parâmetro auth do transportador
+    const contaTeste = await nodemailer.createTestAccount()
+    //criamos um transportador com o método createTransport com o host de teste do nodemailer e o auth criado na linha anterior
+    const transportador = nodemailer.createTransport({
+        host: 'smtp.ethereal.email',
+        auth: contaTeste
+    })
+    //Com o método sendEmail do transportador, enviamos um e-mail de acordo com o objeto passado no parâmetro da função e teremos como retorno a url de validação do e-mail
+    const info = await transportador.sendMail({
+        from: '"Blog do Código" <noreply@blogdocodigo.com.br>',
+        to: usuario.email,
+        subject: 'Teste de e-mail',
+        text: 'Olá! Este é um e-mail de teste',
+        html: '<h1>Olá!</h1> <p>Este é um e-mail de teste</p>'
+    })
+    console.log('URL: ' + nodemailer.getTestMessageUrl(info))
+}
+~~~
+
+- Chamamos a função enviaEmail logo após a criação do usuário no arquivo usuario-controlador dentro da função adiciona. 
