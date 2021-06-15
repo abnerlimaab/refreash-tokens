@@ -412,3 +412,13 @@ async verificaEmail() {
   await usuariosDao.modificaEmailVerificado(this, this.emailVerificado)
 }
 ~~~
+
+## Implementando a rota
+
+- Em middlewares-autenticacao, implementamos um novo middleware que coleta o id passado no parâmetro da requisição e cria uma instância de Usuario com o id correspondente e a passa na requisição seguindo então para o próximo middleware
+
+- Em usuarios-controlador, implementamos o método verificaEmail que pega a instância de Usuario passada pelo middleware verificaEmail e chama o método verificaEmail da instância
+
+- Por fim, incluimos o middleware na rota correspondente para que seja chamado antes de verificaEmail de usuarios-controlador.
+
+
