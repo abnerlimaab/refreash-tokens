@@ -364,3 +364,51 @@ async adiciona() {
   const emailVerificacao = new EmailVerificacao(usuario, endereco)
   emailVerificacao.enviaEmail().catch(console.log)
 ~~~
+
+## Adicionando e modificando emailVerificado
+
+- Em database.js, adicionamos o campo emailVerificado do tipo INTEGER no USUARIOS_SCHEMA
+
+- Em usuario-dao, adicionamos o campo emailVerificado na query e no objeto passados como argumento no método dbRun
+
+~~~javascript
+await dbRun(
+  `INSERT INTO usuarios (nome, email, senhaHash, emailVerificado) 
+  VALUES (?, ?, ?, ?)`,
+  [usuario.nome, usuario.email, usuario.senhaHash, usuario.emailVerificado]
+)
+~~~
+
+- Criamos o atributo emailVerificado na Classe Usuario em usuarios-models
+
+- Atualizamos o método adiciona de usuarios-controlador para iniciar o atributo com false
+
+~~~javascript
+const usuario = new Usuario({
+  nome,
+  email,
+  emailVerificado: false
+})
+~~~
+
+- Em usuarios-dao, implementamos a função modificaEmailVerificado que tem por responsabilidade alterar o valor de emailVerificado de determinado usuário na base de dados
+
+~~~javascript
+async modificaEmailVerificado(usuario, emailVerificado) {
+  try {
+    await dbRun('UPDATE usuarios SET emailVerificado = ? WHERE id = ?',
+    [emailVerificado, usuario.id])
+  } catch (erro) {
+    throw new InternalServerError('Erro ao modificar a verificação de e-mail')
+  }
+}
+~~~
+
+- Em usuarios-models, implementamos o método verificaEmail que modificará o valor de emailVerificado da instância e na base de dados em uma abstração de mais alto nível utilizando a função implementada no passo anterior
+
+~~~javascript
+async verificaEmail() {
+  this.emailVerificado = true
+  await usuariosDao.modificaEmailVerificado(this, this.emailVerificado)
+}
+~~~
