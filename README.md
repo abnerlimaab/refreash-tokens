@@ -307,4 +307,60 @@ async function enviaEmail(usuario) {
 }
 ~~~
 
-- Chamamos a função enviaEmail logo após a criação do usuário no arquivo usuario-controlador dentro da função adiciona. 
+- Chamamos a função enviaEmail logo após a criação do usuário no arquivo usuario-controlador dentro da função adiciona.
+
+## Configurando o e-mail e organizando o endereço
+
+- Criamos a classe Email transformando a função enviaEmail em um método
+
+- Implementamos a classe EmailVerificacao que herda os métodos de Email e definimos os atributos que serão utilizados na construção do e-mail {from, to, subject, text, html}
+
+~~~javascript
+  this.from = '"Blog do Código" <noreply@blogdocodigo.com.br>'
+  this.to = usuario.email
+  this.subject = 'Verificação de e-mail'
+  this.text = `Olá! Verifique seu e-mail aqui: ${endereco}`
+  this.html = `<h1>Olá!</h1> Verifique seu e-mail aqui: <a href"${endereco}">${endereco}</a>`
+~~~
+
+- Desta forma, podemos enviar this como parâmetro da função sendEmail do transportador utiliado na classe mãe Email
+
+~~~javascript
+  const info = await transportador.sendMail(this)
+~~~
+
+- O módulo passa a exportar a classe EmailVerificacao em substituição a função enviaEmail
+
+- Atualizamos o importe do módulo email no arquivo usuario-controlador para pegarmos a nova classe implementada
+
+- Criamos a função geraEndereco que terá a responsabilidade de criar o endereço de verificação a ser enviado.
+
+~~~javascript
+function geraEndereco(rota, id) {
+  const baseURL = process.env.BASE_URL //Definimos a BASE_URL na variável de ambiente env
+  return `${baseURL}${rota}${id}`
+}
+~~~
+
+Obs: O atributo id ainda não era conhecido no método adiciona do controlador, então ajustamos o método no usuarios-modelo para retorno do atributo na instância
+
+~~~javascript
+async adiciona() {
+  //...
+  await usuariosDao.adiciona(this);
+  const { id } = await usuariosDao.buscaPorEmail(this.email)
+  this.id = id
+}
+~~~
+
+- Chamamos a função geraEndereco no método adiciona de usuarios-controlador
+
+- Criamos uma instãncia da classe EmailVerificacao passando o usuario e endereco já conhecidos
+
+- Por fim, chamamos o método enviaEmail da classe EmailVerificacao
+
+~~~javascript
+  const endereco = geraEndereco('/usuario/verifica_email/', usuario.id)
+  const emailVerificacao = new EmailVerificacao(usuario, endereco)
+  emailVerificacao.enviaEmail().catch(console.log)
+~~~
