@@ -421,4 +421,27 @@ async verificaEmail() {
 
 - Por fim, incluimos o middleware na rota correspondente para que seja chamado antes de verificaEmail de usuarios-controlador.
 
+## Gerando endereço dinâmico
 
+- Em tokens.js, criamos o objeto verificacaoEmail 
+
+~~~javascript
+verificacaoEmail: {
+    nome: 'token de verificação de e-mail',
+    expiracao: [1, 'h'],
+    cria(id) {
+        return criaTokenJWT(id, this.expiracao)
+    },
+    verifica(token) {
+        return verificaTokenJWT(token, this.nome)
+    }
+}
+~~~
+
+- Atualizamos a função verificaTokenNaBlocklist para que caso a lista passada no parâmetro da função seja undefined não seja retornado nada, evitando erros.
+
+- Em usuarios-controlador, na função geraEndereco substituimos o id pelo token que é criado no método adiciona
+
+- Em middlewares-autenticacao, passamos a trabalhar com token no método verificacaoEmail e adicionamos os devidos tratamento de erros.
+
+- Por gim, atualizamos a rota que será gerada para que receba o token ao invés do id para sua devida validação.
