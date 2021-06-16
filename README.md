@@ -445,3 +445,4 @@ verificacaoEmail: {
 - Em middlewares-autenticacao, passamos a trabalhar com token no método verificacaoEmail e adicionamos os devidos tratamento de erros.
 
 - Por gim, atualizamos a rota que será gerada para que receba o token ao invés do id para sua devida validação.
+
