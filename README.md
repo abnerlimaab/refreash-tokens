@@ -391,3 +391,10 @@ res.send(conversor.converter(posts))
 
 - No método converter, realizaremos a filtragem do conteúdo apenas se a string '*' que determina que todos os campos são visíveis não for localizada
 
+### trabalhando com usuários (Aula 5.2)
+
+- Em controleDeAcesso, concedemos permissão de leitura do nome de usuários ao cargo de assinante e editor
+
+- Utilizamos template method em conversores concentrando os métodos comuns na classe Conversores e especificando nas classes ConversorPost e ConversorUsuario
+
+- Passamos a utilizar a classe ConversorUsuario no método lista de usuarios-controlador
