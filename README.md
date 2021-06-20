@@ -52,3 +52,77 @@ module.exports = (entidade, acao) => (requisicao, resposta, proximo) => {
       usuariosControlador.lista
     )
 ~~~
+
+### Definindo cargos mais complexos (Aula 3.2)
+
+- No arquivo controleDeAcesso, implementamos os cargos e definimos as permissões
+
+~~~javascript
+controle
+    .grant('assinante')
+    .readAny('post', ['id', 'titulo', 'conteudo', 'autor'])
+
+controle
+    .grant('editor')
+    .extend('assinante')
+    .createOwn('post')
+    .deleteOwn('post')
+
+controle
+    .grant('admin')
+    .createAny('post')
+    .deleteAny('post')
+    .readAny('usuario')
+    .deleteAny('usuario')
+~~~
+
+- No arquivo autorizacao.js, implementamos um dicionário para concentrar as permissões.
+
+~~~javascript
+const metodos = {
+    ler: {
+        todos: 'readAny',
+        apenasSeu: 'readOwn'
+    },
+    criar: {
+        todos: 'createAny',
+        apenasSeu: 'createOwn'
+    },
+    remover: {
+        todos: 'deleteAny',
+        apenasSeu: 'deleteOwn'
+    }
+}
+~~~
+
+- Criamos uma const para cada ação da entidade
+
+~~~javascript
+    const permissaoTodos = permissoesDoCargo[acoes.todos](entidade)
+    const permisaoApenasSeu = permissoesDoCargo[acoes.apenasSeu](entidade)
+~~~
+
+- Atualizamos o teste de permissões concedidas
+
+~~~javascript
+if (permissaoTodos.granted === false && permisaoApenasSeu.granted === false)
+~~~
+
+- Atualizamos o objeto de acesso passado para requisição
+
+~~~javascript
+    requisicao.acesso = {
+        todos: {
+            permitido: permissaoTodos.granted,
+            atributos: permissaoTodos.attributes
+        },
+        apenasSeu: {
+            permitido: permisaoApenasSeu.granted,
+            atributos: permisaoApenasSeu.attributes
+        },
+        atributos: permissao.attributes
+    }
+~~~
+
+- Atualizamos as rotas dos posts para utilização do middleware de autorização
+
