@@ -230,3 +230,37 @@ const tentarAutorizar = require('../middlewares/tentarAutorizar')
     ],
     usuariosControlador.deleta)
 ~~~
+
+### Middleware de tratamento de erros (Aula 4.2)
+
+- Implementamos o middleware de tratamento de erro no server.js
+
+~~~javascript
+//Para que o express o reconheça como middleware de tratamento de erro, devemos adicionar erro como primeiro parâmetro
+app.use((erro, requisicao, resposta, proximo) => {
+    //Definimos o status padrão de resposta e o ajustaremos conforme o erro recebido
+    let status = 500
+    //Definimos o corpo padrão da resposta e o ajustaremos conforme o erro recebido
+    const corpo = {
+        mensagem: erro.message
+    }
+    //Neste if capturamos erros da classe InvalidArgumentError
+    if (erro instanceof InvalidArgumentError) {
+        status = 400
+    }
+    //Neste if capturamos erros da classe JsonWebTokenError
+    if (erro instanceof jwt.JsonWebTokenError) {
+        status = 401
+    }
+    //Neste if capturamos erros da classe TokenExpiredError
+    if (erro instanceof jwt.TokenExpiredError) {
+        status = 401
+        corpo.expiradoEm = erro.expiredAt
+    }
+    //Após os testes lógicos, enviamos a resposta para o cliente
+    resposta.status(status)
+    resposta.json(corpo)
+})
+~~~
+
+- Ajustamos os catches de usuarios-controlador e middlewares-autenticação para que passem a utilizar nosso novo middleware, dessa forma concentramos a responsabilidade em um único middleware

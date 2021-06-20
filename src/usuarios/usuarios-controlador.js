@@ -10,7 +10,7 @@ function geraEndereco (rota, token) {
 }
 
 module.exports = {
-  async adiciona (req, res) {
+  async adiciona (req, res, prox) {
     const { nome, email, senha, cargo } = req.body
 
     try {
@@ -30,60 +30,57 @@ module.exports = {
 
       res.status(201).json()
     } catch (erro) {
-      if (erro instanceof InvalidArgumentError) {
-        return res.status(400).json({ erro: erro.message })
-      }
-      res.status(500).json({ erro: erro.message })
+      prox(erro)
     }
   },
 
-  async login (req, res) {
+  async login (req, res, prox) {
     try {
       const accessToken = tokens.access.cria(req.user.id)
       const refreshToken = await tokens.refresh.cria(req.user.id)
       res.set('Authorization', accessToken)
       res.status(200).json({ refreshToken })
     } catch (erro) {
-      res.status(500).json({ erro: erro.message })
+      prox(erro)
     }
   },
 
-  async logout (req, res) {
+  async logout (req, res, prox) {
     try {
       const token = req.token
       await tokens.access.invalida(token)
       res.status(204).json()
     } catch (erro) {
-      res.status(500).json({ erro: erro.message })
+      prox(erro)
     }
   },
 
-  async lista (req, res) {
+  async lista (req, res, prox) {
     try {
       const usuarios = await Usuario.lista()
       res.json(usuarios)
     } catch (erro) {
-      res.status(500).json({ erro: erro.message })
+      prox(erro)
     }
   },
 
-  async verificaEmail (req, res) {
+  async verificaEmail (req, res, prox) {
     try {
       const usuario = req.user
       await usuario.verificaEmail()
       res.status(200).json()
     } catch (erro) {
-      res.status(500).json({ erro: erro.message })
+      prox(erro)
     }
   },
 
-  async deleta (req, res) {
+  async deleta (req, res, prox) {
     try {
       const usuario = await Usuario.buscaPorId(req.params.id)
       await usuario.deleta()
       res.status(200).json()
     } catch (erro) {
-      res.status(500).json({ erro: erro })
+      prox(erro)
     }
   }
 }
