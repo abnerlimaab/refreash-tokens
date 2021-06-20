@@ -17,12 +17,16 @@ module.exports = app => {
     )
 
   app.route('/post/:id')
-    .get(
-      [middlewaresAutenticacao.bearer, autorizacao('post', 'ler')],
+    .get([
+      middlewaresAutenticacao.bearer, 
+      autorizacao('post', 'ler')],
       postsControlador.obterDetalhes
     )
-    .delete(
-      [middlewaresAutenticacao.bearer, autorizacao(['post', ''])],
+    .delete([
+      middlewaresAutenticacao.bearer,
+      middlewaresAutenticacao.local,
+      autorizacao(['post', 'remover'])
+    ],
       postsControlador.remover
     )
 }

@@ -200,3 +200,33 @@ const tentarAutorizar = require('../middlewares/tentarAutorizar')
       postsControlador.lista
     )
 ~~~
+
+### Confirmando ações perigosas (Aula 4.1)
+
+- Adicionamos o middleware de autenticação local na rota delete de posts como uma camada adicional de segurança
+
+~~~javascript
+  app.route('/post/:id')
+      .delete([
+        //Valida o token
+        middlewaresAutenticacao.bearer,
+        //Valida informações de login
+        middlewaresAutenticacao.local,
+        //Valida permissões
+        autorizacao(['post', 'remover'])
+    ],
+      postsControlador.remover
+    )
+~~~
+
+- Realizamos o mesmo procedimento na rota delete de usuários
+
+~~~javascript
+  app.route('/usuario/:id')
+     .delete([
+      middlewaresAutenticacao.bearer, 
+      middlewaresAutenticacao.local, 
+      autorizacao('usuario', 'remover')
+    ],
+    usuariosControlador.deleta)
+~~~
