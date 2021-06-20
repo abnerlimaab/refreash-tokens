@@ -10,6 +10,13 @@ const routes = require('./rotas')
 const { InvalidArgumentError, NaoEncontrado, NaoAutorizado } = require('./src/erros')
 const jwt = require('jsonwebtoken')
 
+app.use((requisicao, resposta, proximo) => {
+    resposta.set({
+        'Content-Type': 'application/json'
+    })
+    proximo()
+})
+
 routes(app)
 
 app.use((erro, requisicao, resposta, proximo) => {

@@ -302,3 +302,82 @@ class NaoAutorizado extends Error {
         status = 401
     }
 ~~~
+
+### Serializando dados (Aula 4.4)
+
+- Implementamos o middleware que define o tipo de conteúdo utilizado na api antes da definição de rotas em nosso servidor.
+
+~~~javascript
+app.use((requisicao, resposta, proximo) => {
+    resposta.set({
+        'Content-Type': 'application/json'
+    })
+    proximo()
+})
+~~~
+
+- Implementamos a classe ConversorPost
+
+~~~javascript
+class ConversorPost {
+    constructor (tipoDeConteudo) {
+        //Recebe o tipo de conteúdo definido no construtor da instância
+        this.tipoDeConteudo = tipoDeConteudo
+        //Define os campos públicos de post
+        this.camposPublicos = ['titulo', 'conteudo']
+    }
+    //O método converter recebe os dados e chama o método filtrar, em seguida, caso o tipo de conteúdo esteja definido como json, chama o método json para conversão e passa seu retorno a diante.
+    converter (dados) {
+        dados = this.filtrar(dados)
+        if (this.tipoDeConteudo === 'json') {
+            return this.json(dados)
+        }
+    }
+    //O método json converte os dados para o formato json utilizando a função stringify de JSON nativa do javascript
+    json (dados) {
+        return JSON.stringify(dados)
+    }
+    //O método filtrar é responsável pela filtragem do conteúdo de acordo com o tipo de dados passados no argumento.
+    filtrar (dados) {
+        //Se dados for uma lista, realizaremos um map para cada post utilizando o método filtrarObjeto, no contrário, apenas chamamos o método.
+        if (Array.isArray(dados)) {
+            dados = dados.map((post) => this.filtrarObjeto(post))
+        } else {
+            dados = this.filtrarObjeto(dados)
+        }
+        return dados
+    }
+    //O método filtrarObjeto realiza a filtragem em um nível mais baixo
+    filtrarObjeto (objeto) {
+        //Iniciamos com a definição de objetoFiltrado vazio
+        const objetoFiltrado = {}
+        //E então para cada campo público, verificaremos se há correspondência no objeto a ser filtrado
+        this.camposPublicos.forEach((campo) => {
+            if (Reflect.has(objeto, campo)) {
+                //Para cada correspondência, adicionaremos o campo ao objetoFiltrado de forma dinâmica
+                objetoFiltrado[campo] = objeto[campo]
+            }
+        })
+        //Por fim, retornamos o objeto filtrado
+        return objetoFiltrado
+    }
+}
+
+module.exports = ConversorPost
+~~~
+
+- Atualizamos a função em map do método lista do controller de post para retornar o conteúdo de forma resumida
+
+~~~javascript
+posts = posts.map(post => {
+    post.conteudo = post.conteudo.substr(0, 10) + '... Você precisa assinar o blog para ler o restante do post'
+    return post
+})
+~~~
+
+- Ao fim do método lista, enviamos os posts convertidos como resposta
+
+~~~javascript
+res.send(conversor.converter(posts))
+~~~
+
