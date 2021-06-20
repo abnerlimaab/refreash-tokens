@@ -381,3 +381,13 @@ posts = posts.map(post => {
 res.send(conversor.converter(posts))
 ~~~
 
+### Filtrando atributos (Aula 5.1)
+
+- Ajustamos o método adiciona do model de Usuário para que passe a utilizar o método buscaPorEmail de usuariosDao
+
+- O construtor da classe ConversorPost agora recebe também uma lista de campos extras permitindo assim a utilização por outros cargos de usuários os concatenando aos campos públicos
+
+- O método lista de posts-controlador agora encaminha realiza um teste lógico que verifica se o usuário tem acesso a todos os atributos. Caso tenha, enviaremos todos os atributos como campos extras, do contrário, apenas os seus
+
+- No método converter, realizaremos a filtragem do conteúdo apenas se a string '*' que determina que todos os campos são visíveis não for localizada
+

@@ -21,7 +21,8 @@ module.exports = {
   async lista (req, res) {
     try {
       let posts = await Post.listaTodos()
-      const conversor = new ConversorPost('json')
+      const conversor = new ConversorPost('json', 
+      req.acesso.todos.permitido ? req.acesso.todos.atributos : req.acesso.apenasSeu.atributos)
       if (req.estaAutenticado === true) {
         posts = posts.map(post => {
           post.conteudo = post.conteudo.substr(0, 10) + '... Você precisa assinar o blog para ler o restante do post'
