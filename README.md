@@ -264,3 +264,41 @@ app.use((erro, requisicao, resposta, proximo) => {
 ~~~
 
 - Ajustamos os catches de usuarios-controlador e middlewares-autenticação para que passem a utilizar nosso novo middleware, dessa forma concentramos a responsabilidade em um único middleware
+
+### Erros customizados (Aula 4.3)
+
+- Criamos as classes NaoEncontrado e NaoAutorizado e extendemos a classe Error
+
+~~~javascript
+class NaoEncontrado extends Error {
+  constructor (entidade) {
+    const mensagem = `Não foi possível encontrar ${entidade}`
+    super(mensagem)
+    this.name = 'NaoEncontrado'
+  }
+}
+
+class NaoAutorizado extends Error {
+  constructor () {
+    const mensagem = `Não foi possível acessar esse recurso`
+    super(mensagem)
+    this.name = 'NaoAutorizado'
+  }
+}
+~~~
+
+- Passamos a utilizar NaoEncontrado na passagem de erros do model de usuários nos métodos buscaPorId e buscaPorEmail
+
+- Passamos a utilizar NaoAutorizado na passagem de erros da estratégia de autenticação nas funções verificaUsuario e verificaSenha
+
+- Adicionamos os testes lógicos para tratamento dos erros customizados em nosso middleware de tratamento de erros
+
+~~~javascript
+    if (erro instanceof NaoEncontrado) {
+        status = 404
+    }
+
+    if (erro instanceof NaoAutorizado) {
+        status = 401
+    }
+~~~

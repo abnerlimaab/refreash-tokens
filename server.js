@@ -7,7 +7,7 @@ require('./redis/blocklist-access-token')
 require('./redis/allowlist-refresh-token')
 
 const routes = require('./rotas')
-const { InvalidArgumentError } = require('./src/erros')
+const { InvalidArgumentError, NaoEncontrado, NaoAutorizado } = require('./src/erros')
 const jwt = require('jsonwebtoken')
 
 routes(app)
@@ -16,6 +16,14 @@ app.use((erro, requisicao, resposta, proximo) => {
     let status = 500
     const corpo = {
         mensagem: erro.message
+    }
+
+    if (erro instanceof NaoEncontrado) {
+        status = 404
+    }
+
+    if (erro instanceof NaoAutorizado) {
+        status = 401
     }
 
     if (erro instanceof InvalidArgumentError) {
