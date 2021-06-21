@@ -1,16 +1,16 @@
 const Usuario = require('./usuarios-modelo')
-const { InvalidArgumentError } = require('../erros')
+const { InvalidArgumentError, NaoEncontrado } = require('../erros')
 
 const tokens = require('./tokens')
-const { EmailVerificacao } = require('./emails')
+const { EmailVerificacao, EmailRedefinicaoSenha } = require('./emails')
 
-function geraEndereco (rota, token) {
+function geraEndereco(rota, token) {
   const baseURL = process.env.BASE_URL
   return `${baseURL}${rota}${token}`
 }
 
 module.exports = {
-  async adiciona (req, res, proximo) {
+  async adiciona(req, res, proximo) {
     const { nome, email, senha, cargo } = req.body
 
     try {
@@ -34,7 +34,7 @@ module.exports = {
     }
   },
 
-  async login (req, res, proximo) {
+  async login(req, res, proximo) {
     try {
       const accessToken = tokens.access.cria(req.user.id)
       const refreshToken = await tokens.refresh.cria(req.user.id)
@@ -45,7 +45,7 @@ module.exports = {
     }
   },
 
-  async logout (req, res, proximo) {
+  async logout(req, res, proximo) {
     try {
       const token = req.token
       await tokens.access.invalida(token)
@@ -55,7 +55,7 @@ module.exports = {
     }
   },
 
-  async lista (req, res, proximo) {
+  async lista(req, res, proximo) {
     try {
       const usuarios = await Usuario.lista()
       res.json(usuarios)
@@ -64,7 +64,7 @@ module.exports = {
     }
   },
 
-  async verificaEmail (req, res, proximo) {
+  async verificaEmail(req, res, proximo) {
     try {
       const usuario = req.user
       await usuario.verificaEmail()
@@ -74,13 +74,28 @@ module.exports = {
     }
   },
 
-  async deleta (req, res, proximo) {
+  async deleta(req, res, proximo) {
     try {
       const usuario = await Usuario.buscaPorId(req.params.id)
       await usuario.deleta()
       res.status(200).json()
     } catch (erro) {
       proximo(erro)
+    }
+  },
+
+  async esqueciMinhaSenha(requisicao, resposta, proximo) {
+    const respostaPadrao = {mensagem: 'Se encontrarmos um usuário com este e-mail, vamos enviar uma mensagem com as instruções para redefinir a senha'}
+    try {
+      const usuario = await Usuario.buscaPorEmail(requisicao.body.email)
+      const email = new EmailRedefinicaoSenha(usuario)
+      await email.enviaEmail().catch(console.log)
+      resposta.send(respostaPadrao)
+    } catch (erro) {
+      if (erro instanceof NaoEncontrado) {
+        resposta.send(respostaPadrao)
+        return
+      }
     }
   }
 }
