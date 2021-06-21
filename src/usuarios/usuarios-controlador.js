@@ -85,7 +85,7 @@ module.exports = {
   },
 
   async esqueciMinhaSenha(requisicao, resposta, proximo) {
-    const respostaPadrao = {mensagem: 'Se encontrarmos um usuário com este e-mail, vamos enviar uma mensagem com as instruções para redefinir a senha'}
+    const respostaPadrao = { mensagem: 'Se encontrarmos um usuário com este e-mail, vamos enviar uma mensagem com as instruções para redefinir a senha' }
     try {
       const usuario = await Usuario.buscaPorEmail(requisicao.body.email)
       const token = await tokens.redefinicaoDeSenha.criarToken(usuario.id)
@@ -97,6 +97,21 @@ module.exports = {
         resposta.send(respostaPadrao)
         return
       }
+    }
+  },
+
+  async trocarSenha(requisicao, resposta, proximo) {
+    try {
+      if (typeof requisicao.body.token !== 'string' && requisicao.body.lenght === 0) {
+        throw new InvalidArgumentError('O token está inválido')
+      }
+      const id = await tokens.redefinicaoDeSenha.verifica(requisicao.body.token)
+      const usuario = await Usuario.buscaPorId(id)
+      await usuario.adicionaSenha(requisicao.body.senha)
+      await usuario.atualizarSenha()
+      resposta.send({mensagem: 'Sua senha foi atualizada com sucesso'})
+    } catch (erro) {
+      process(erro)
     }
   }
 }
